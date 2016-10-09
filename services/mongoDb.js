@@ -15,6 +15,10 @@ class MongoDb extends DataBase {
             callback(null);
         });
     }
+
+    get descriptors() {
+        this.connection.collection('descriptors');
+    }
 }
 
 module.exports = new Promise(function (resolve, reject) {

@@ -6,9 +6,10 @@
 var db = global.services.get('Db');
 
 module.exports = class BaseDescriptor {
-    static load(path, data) {
-        return db.collection('descriptors').find({
+
+    static baseLoad(path, data, callback) {
+        db.descriptors.find({
             path: new RegExp(path)
-        });
+        }).toArray(callback);
     }
 };

@@ -5,8 +5,11 @@
 
 var DescriptorBase = require('../../baseDescriptor');
 
+var path = "test:path:testDescriptor";
+
 module.exports = class TestDescriptor extends DescriptorBase {
-   static load(path, data) {
-       return DescriptorBase.load(path.data);
-   }
+
+    static load(data, callback) {
+       DescriptorBase.baseLoad(path, data, callback);
+    }
 };
