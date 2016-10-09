@@ -1,10 +1,12 @@
 /**
  * Created by McSim on 24.09.2016.
  */
+"use strict";
 
-
-class serviceContainer {
-    var services = {};
+module.exports = class ServiceContainer {
+    constructor() {
+        this.services = {};
+    }
 
     register(name, service) {
         this.services[name] = service;
@@ -13,4 +15,4 @@ class serviceContainer {
     get(name) {
         return this.services[name];
     }
-}
+};
