@@ -4,12 +4,19 @@
 "use strict";
 
 var logger = require('winston');
+var config = require("../config.js");
 
 class Storage {
     learn(descriptors, tags) {
-        console.log('learn');
-        console.log(descriptors);
-        console.log(tags);
+        logger.debug('learn');
+        logger.debug(descriptors);
+        logger.debug(tags);
+
+        return Promise.all(descriptors.map((current) => {
+            return this.learnForSingleDescriptor(current, tags);
+        })).then((result) => {
+            return result;
+        });
     }
 
     getTags(descriptors) {
@@ -29,7 +36,7 @@ class Storage {
             if (!descriptorClass) {
                 return resolve([]);
             }
-            descriptorClass.load(descriptor.data, function (err, savedDescriptors) {
+            descriptorClass.load(descriptor.data, (err, savedDescriptors) => {
                 if (err) return reject(err);
                 resolve(savedDescriptors.map(function (current, index, array) {
                     return current.tags;
@@ -38,8 +45,47 @@ class Storage {
         });
     }
 
+    learnForSingleDescriptor(descriptor, tags) {
+        return new Promise((resolve, reject) => {
+            var descriptorClass = this.resolvePath(descriptor.path);
+            if (!descriptorClass) return reject(new Error('Could not find implementation class for ' + descriptor.path));
+
+            descriptorClass.load(descriptor.data, (err, savedDescriptors) => {
+                if (err) return reject(err);
+                if (!savedDescriptors.length) {
+                    this.initDescriptor(descriptorClass, descriptor, tags)
+                        .then(resolve, reject);
+                } else {
+                    Promise.all(savedDescriptors.map((current) => {
+                        return this.correctDescriptor(descriptorClass, current, descriptor, tags);
+                    })).then(resolve, reject);
+                }
+            });
+        });
+    }
+
+    initDescriptor(descriptorClass, descriptor, tags) {
+        return new Promise((resolve, reject) => {
+            var weightedTags = tags.reduce((prev, tag) => {
+                prev[tag] = config.storage.initialTagWeight;
+                return prev;
+            }, {});
+
+            descriptorClass.insert(descriptor.data, weightedTags, (err, id) => {
+                if (err) return reject(err);
+                resolve({ added: id });
+            });
+        });
+    }
+
+    correctDescriptor(descriptorClass, current, descriptor, tags) {
+        return new Promise((resolve, reject) => {
+            resolve();
+        });
+    }
+
     postProcess(tags) {
-        return tags;
+        return this.reduceTagsArray(tags.map((curr) => { return this.reduceTagsArray(curr)}));
     }
 
     resolvePath(path) {
@@ -51,6 +97,18 @@ class Storage {
             logger.warn('Could not load descriptor class for "' + path + '". Error: ' + err.message);
             return null;
         }
+    }
+
+    reduceTagsArray(tags) {
+        return tags.reduce((prev, current, index, array) => {
+            for(var tag in current)
+                if (current.hasOwnProperty(tag))
+                    if (prev[tag])
+                        prev[tag] += current[tag];
+                    else
+                        prev[tag] = current[tag];
+            return prev;
+        }, {});
     }
 }
 

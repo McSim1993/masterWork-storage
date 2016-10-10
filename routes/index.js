@@ -17,11 +17,9 @@ router.route('/tags')
 
         storage.getTags(req.body.descriptors)
             .then(function (tags) {
-                res.end(tags);
-            }, function (err) {
-                console.log(err);
-                next(err);
-            });
+                res.send(tags);
+                res.end();
+            }, next);
     });
 
 router.route('/learn')
@@ -32,10 +30,11 @@ router.route('/learn')
             return next(err);
         }
 
-        storage.learn(req.body.descriptors, req.body.tags, function (err) {
-            if (err) return next(err);
-            res.end();
-        });
+        storage.learn(req.body.descriptors, req.body.tags)
+            .then((result) => {
+                res.send(result);
+                res.end();
+            }, next);
     });
 
 module.exports = router;

@@ -3,11 +3,10 @@
  */
 "use strict";
 
-var DataBase = require('./db');
 var config = require('../config');
 var mongo = require('mongodb');
 
-class MongoDb extends DataBase {
+class MongoDb {
     connect(url, callback) {
         mongo.MongoClient.connect(url, (err, db) => {
             if (err) return callback(err);
@@ -16,8 +15,12 @@ class MongoDb extends DataBase {
         });
     }
 
+    init(callback) {
+        this.connection.dropDatabase(callback);
+    }
+
     get descriptors() {
-        this.connection.collection('descriptors');
+        return this.connection.collection('descriptors');
     }
 }
 

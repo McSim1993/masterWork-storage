@@ -7,6 +7,9 @@ module.exports = {
     database: {
       url: 'mongodb://localhost:27017/masterwork'
     },
+    storage: {  
+        initialTagWeight: 1
+    },
     port: 8000,
     host: 'localhost'
 };

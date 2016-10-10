@@ -10,22 +10,85 @@ var conf = require('../config');
 
 var baseUrl = 'http://' + conf.host + ':' + conf.port;
 
-describe('life cycle', function () {
-    before(function () {
-        require('../main');
-    });
-
-    it('simple get', function (done) {
-        fs.createReadStream('./tests/data/testDescriptor.json').pipe(request.post(baseUrl + '/tags')).on('response', function (response){
-            expect(response.statusCode).to.be.equal(200);
-            var data = '';
-            response.on('data', function (chunk) {
-                data += chunk;
-            });
-            response.on('end', function () {
-                console.log(data);
+describe('life cycle', () => {
+    before((done) => {
+        require('../services/mongoDb').then((db) => {
+            db.init((err) => {
+                expect(err).to.not.be.ok;
+                require('../main');
                 done();
             });
         });
-    })
+    });
+
+    it('returns empty set of tags', (done) => {
+        fs.createReadStream('./tests/data/testDescriptor.json').pipe(request.post(baseUrl + '/tags'))
+            .on('response', (response) => {
+            expect(response.statusCode).to.be.equal(200);
+            var data = '';
+            response.on('data', (chunk) => {
+                data += chunk;
+            });
+            response.on('end', () =>{
+                var resp = JSON.parse(data);
+                expect(resp).to.be.a('Object');
+                expect(Object.keys(resp)).to.be.empty;
+                done();
+            });
+        });
+    });
+    
+    it('writes a descriptor to server', (done) => {
+        fs.createReadStream('./tests/data/singleDescriptorLearnData.json').pipe(request.post(baseUrl + '/learn'))
+            .on('response', (response) => {
+            expect(response.statusCode).to.be.equal(200);
+            var data = '';
+            response.on('data', (chunk) => {
+                data += chunk;
+            });
+            response.on('end', () => {
+                var resp = JSON.parse(data);
+                expect(resp).to.be.a('Array');
+                expect(resp).to.have.lengthOf(1);
+                expect(resp[0].added).to.be.a('String');
+                done();
+            });
+        });
+    });
+
+    it('returns set of 2 tags', (done) => {
+        fs.createReadStream('./tests/data/testDescriptor.json').pipe(request.post(baseUrl + '/tags'))
+            .on('response', (response) => {
+                expect(response.statusCode).to.be.equal(200);
+                var data = '';
+                response.on('data', (chunk) => {
+                    data += chunk;
+                });
+                response.on('end', () =>{
+                    var resp = JSON.parse(data);
+                    expect(resp).to.be.a('Object');
+                    expect(Object.keys(resp)).to.have.lengthOf(2);
+                    expect(resp.tag1).to.be.ok;
+                    done();
+                });
+            });
+    });
+
+    it('returns emty set, with unexisting descriptor', (done) => {
+        fs.createReadStream('./tests/data/unexistingDescriptor.json').pipe(request.post(baseUrl + '/tags'))
+            .on('response', (response) => {
+            expect(response.statusCode).to.be.equal(200);
+            var data = '';
+            response.on('data', (chunk) => {
+                data += chunk;
+            });
+            response.on('end', () => {
+                var resp = JSON.parse(data);
+                expect(resp).to.be.a('Object');
+                expect(Object.keys(resp)).to.be.empty;
+                done();
+            });
+        });
+    });
+
 });

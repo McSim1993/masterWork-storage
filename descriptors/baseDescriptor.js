@@ -12,4 +12,12 @@ module.exports = class BaseDescriptor {
             path: new RegExp(path)
         }).toArray(callback);
     }
+
+    static baseInsert(descriptor, callback) {
+        db.descriptors.insert(descriptor, (err, result) => {
+            if (err) return callback(err);
+
+            callback(null, result.insertedIds[0]);
+        });
+    }
 };

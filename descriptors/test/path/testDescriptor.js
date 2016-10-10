@@ -12,4 +12,12 @@ module.exports = class TestDescriptor extends DescriptorBase {
     static load(data, callback) {
        DescriptorBase.baseLoad(path, data, callback);
     }
+    
+    static insert(data, tags, callback) {
+        DescriptorBase.baseInsert({
+            path: path,
+            data: data,
+            tags: tags
+        }, callback);
+    }
 };
