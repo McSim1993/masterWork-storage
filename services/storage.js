@@ -57,7 +57,7 @@ class Storage {
                         .then(resolve, reject);
                 } else {
                     Promise.all(savedDescriptors.map((current) => {
-                        return this.correctDescriptor(descriptorClass, current, descriptor, tags);
+                        return this.correctDescriptor(descriptorClass, current, tags);
                     })).then(resolve, reject);
                 }
             });
@@ -78,9 +78,16 @@ class Storage {
         });
     }
 
-    correctDescriptor(descriptorClass, current, descriptor, tags) {
+    correctDescriptor(descriptorClass, descriptor, tags) {
         return new Promise((resolve, reject) => {
-            resolve();
+            tags.forEach((tag) => {
+               if (!descriptor.tags[tag])
+                   descriptor.tags[tag] = config.storage.initialTagWeight;
+                else
+                   descriptor.tags[tag] *= config.storage.tagMultiplier;
+            });
+            for (let tag in descriptor.tags)
+                descriptor.tags[tag] -= config.storage.tagFadeFactor;
         });
     }
 
