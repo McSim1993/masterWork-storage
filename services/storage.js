@@ -57,8 +57,13 @@ class Storage {
                         .then(resolve, reject);
                 } else {
                     Promise.all(savedDescriptors.map((current) => {
-                        return this.correctDescriptor(descriptorClass, current, descriptor, tags);
-                    })).then(resolve, reject);
+                        return this.correctDescriptor(descriptorClass, current, tags);
+                    })).then((resArray) => {
+                        resolve(resArray.reduce((prev, curr) => {
+                            prev.updated.push(curr.updated);
+                            return prev;
+                        }, { updated: [] }));
+                    }, reject);
                 }
             });
         });
@@ -78,9 +83,20 @@ class Storage {
         });
     }
 
-    correctDescriptor(descriptorClass, current, descriptor, tags) {
+    correctDescriptor(descriptorClass, descriptor, tags) {
         return new Promise((resolve, reject) => {
-            resolve();
+            tags.forEach((tag) => {
+                if (descriptor.tags[tag])
+                    descriptor.tags[tag] *= config.storage.tagsMultiplierFactor;
+                else
+                    descriptor.tags[tag] = config.storage.initialTagWeight;
+            });
+            for (let tag in descriptor.tags)
+                descriptor.tags[tag] -= config.storage.tagFadeFactor;
+            descriptorClass.save(descriptor, (err) => {
+                if (err) return reject(err);
+                resolve({ updated: descriptor._id });
+            });
         });
     }
 

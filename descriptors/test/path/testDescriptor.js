@@ -20,4 +20,10 @@ module.exports = class TestDescriptor extends DescriptorBase {
             tags: tags
         }, callback);
     }
+    
+    static save(descriptor, callback) {
+        if (descriptor.path != path)
+            return callback(new Error('Wrong path. Path is "' + descriptor.path + '" but "' + path + '" expected'));
+        DescriptorBase.baseSave(descriptor, callback);
+    }
 };

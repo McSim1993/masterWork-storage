@@ -7,6 +7,14 @@ var db = global.services.get('Db');
 
 module.exports = class BaseDescriptor {
 
+    static baseSave(descriptor, callback)  {
+        if (!descriptor.path)
+            return callback(new Error('"Path" must be present'));
+        if (!descriptor.tags)
+            descriptor.tags = {};
+        db.descriptors.save(descriptor, callback);
+    }
+
     static baseLoad(path, data, callback) {
         db.descriptors.find({
             path: new RegExp(path)

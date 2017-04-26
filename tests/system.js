@@ -38,7 +38,7 @@ describe('life cycle', () => {
         });
     });
     
-    it('writes a descriptor to server', (done) => {
+    it('posts a descriptor to server', (done) => {
         fs.createReadStream('./tests/data/singleDescriptorLearnData.json').pipe(request.post(baseUrl + '/learn'))
             .on('response', (response) => {
             expect(response.statusCode).to.be.equal(200);
@@ -51,6 +51,26 @@ describe('life cycle', () => {
                 expect(resp).to.be.a('Array');
                 expect(resp).to.have.lengthOf(1);
                 expect(resp[0].added).to.be.a('String');
+                done();
+            });
+        });
+    });
+
+    it('posts a descriptor copy to server', (done) => {
+        fs.createReadStream('./tests/data/singleDescriptorLearnData.json').pipe(request.post(baseUrl + '/learn'))
+            .on('response', (response) => {
+            expect(response.statusCode).to.be.equal(200);
+            var data = '';
+            response.on('data', (chunk) => {
+                data += chunk;
+            });
+            response.on('end', () => {
+                var resp = JSON.parse(data);
+                expect(resp).to.be.a('Array');
+                expect(resp).to.have.lengthOf(1);
+                expect(resp[0].updated).to.be.a('Array');
+                expect(resp[0].updated).to.have.lengthOf(1);
+                expect(resp[0].updated[0]).to.be.a('String');
                 done();
             });
         });
